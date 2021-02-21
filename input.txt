@@ -1,1 +1,10 @@
 3
+3
+a
+1 c
+a 1 b
+a 2 b
+a 3 b
+b 1 c
+b 2 c
+b 3 c
