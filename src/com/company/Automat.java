@@ -4,6 +4,7 @@ import java.io.*;
 
 import java.util.HashSet;
 
+
 import static com.company.consts.delim;
 
 public class Automat {
@@ -22,22 +23,22 @@ public class Automat {
         if(a_size < 1)
             throw new IOException("Not enough value of A length (input alphabet).");
 
+        for(int i = 0; i < s_size; i++)
+            A.add(String.valueOf((char)('a' + i)));
+
         //second line
         data = check_input_line(reader, 1, input_fname, 2);
         s_size = Integer.parseInt(data[0]);
         if(s_size < 1)
             throw new IOException("Not enough value of B length (states).");
 
-        for(int i = 0; i < s_size; i++)
-            S.add(String.valueOf((char)('a' + i)));
+
 
         //third line
         data = check_input_line(reader, 1, input_fname,3);
-        c_start = data[0];
-        if(c_start.length() != 1)
-            throw new IOException("Incorrect data in line 3 (start state). " + c_start + " have invalid length of word.");
-        if(!(S.contains(c_start)))
-            throw new IOException("Incorrect data in line 3 (start state). Automat do not have state with this char.");
+        c_start = Integer.parseInt(data[0]);
+        if(!state_exists(c_start))
+            throw new IOException("Incorrect data in line 3 (start state). Automat do not have state with this symbol.");
 
         //fourth line
         String line = reader.readLine();
@@ -52,11 +53,10 @@ public class Automat {
             throw new IOException("Too much arguments in line 4 of " + input_fname);
 
         for(int i = 1; i < f_size + 1; i++){
-            if(data[i].length() != 1)
-                throw new IOException("Argument \"" + data[i] + "\" in line 4 of " + input_fname + " is incorrect (invalid format of the state).");
-            if(!S.contains(data[i]))
+            int tmp = Integer.parseInt(data[i]);
+            if(!state_exists(tmp))
                 throw new IOException("Argument \"" + data[i] + "\" in line 4 of " + input_fname + " is incorrect (the state does not exists).");
-            Final.add(data[i]);
+            Final.add(tmp);
         }
 
         //line 5 and other
@@ -76,15 +76,15 @@ public class Automat {
             else if(data.length > 3)
                 throw new IOException("Too much arguments in line " + line_num + " of " + input_fname);
 
-            int x = data[0].charAt(0) - 'a';
-            int y = Integer.parseInt(data[1]);
-            int z = data[2].charAt(0) - 'a';
+            int x = Integer.parseInt(data[0]);
+            int y = data[1].charAt(0) - 'a';
+            int z = Integer.parseInt(data[2]);
 
-            if(x < 0 || x > a_size)
+            if(x < 0 || x > s_size)
                 throw new IOException("Argument \"" + x + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
-            if(y < 0 || y > s_size)
+            if(y < 0 || y > a_size)
                 throw new IOException("Argument \"" + y + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
-            if(z < 0 || z > a_size)
+            if(z < 0 || z > s_size)
                 throw new IOException("Argument \"" + z + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
 
             line = reader.readLine();
@@ -105,13 +105,23 @@ public class Automat {
         return data;
     }
 
+    private boolean state_exists(int st){
+        return c_start >= 0 && c_start < s_size;
+    }
+
+    private void print_to_file(String fname) throws IOException{
+        //FireWriter myWriter
+    }
+
+
+
     private String stream_fname;
     private int a_size = 0;
     private int s_size = 0;
-    private HashSet<String> S = new HashSet<>();
-    private String c_start = "";
+    private HashSet<String> A = new HashSet<>();
+    private int c_start = -1;
     int f_size = 0;
-    HashSet<String> Final = new HashSet<>();
+    HashSet<Integer> Final = new HashSet<>();
     int[][] func;
 
     FileReader stream_reader;
