@@ -36,8 +36,8 @@ public class Automat {
 
         //third line
         data = check_input_line(reader, 1, input_fname,3);
-        c_start = Integer.parseInt(data[0]);
-        if(!state_exists(c_start))
+        s_start = Integer.parseInt(data[0]);
+        if(!good_state(s_start))
             throw new IOException("Incorrect data in line 3 (start state). Automat do not have state with this symbol.");
 
         //fourth line
@@ -54,16 +54,16 @@ public class Automat {
 
         for(int i = 1; i < f_size + 1; i++){
             int tmp = Integer.parseInt(data[i]);
-            if(!state_exists(tmp))
+            if(!good_state(tmp))
                 throw new IOException("Argument \"" + data[i] + "\" in line 4 of " + input_fname + " is incorrect (the state does not exists).");
             Final.add(tmp);
         }
 
         //line 5 and other
 
-        func = new int[a_size][s_size];
-        for(int i = 0; i < a_size; i++){
-            for(int j = 0; j < s_size; j++)
+        func = new int[s_size][a_size];
+        for(int i = 0; i < s_size; i++){
+            for(int j = 0; j < a_size; j++)
                 func[i][j] = -1;
         }
 
@@ -80,17 +80,34 @@ public class Automat {
             int y = data[1].charAt(0) - 'a';
             int z = Integer.parseInt(data[2]);
 
-            if(x < 0 || x > s_size)
-                throw new IOException("Argument \"" + x + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
-            if(y < 0 || y > a_size)
-                throw new IOException("Argument \"" + y + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
-            if(z < 0 || z > s_size)
-                throw new IOException("Argument \"" + z + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
+            if(!good_state(x))
+                throw new IOException("Argument x \"" + x + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
+            if(!good_char(y))
+                throw new IOException("Argument y \"" + y + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
+            if(!good_state(z))
+                throw new IOException("Argument z \"" + z + "\" in line " + line_num + " of " + input_fname + " is incorrect (out of range).");
+
+            if(func[x][y] == -1)
+                func[x][y] = z;
+            else
+                throw new IOException("In line " + line_num + " of " + input_fname + " data is incorrect (double definition).");
 
             line = reader.readLine();
             line_num++;
         }
         fr.close();
+
+        for(int i = 0; i < s_size; i++){
+            if(!Final.contains(i)){
+                int counter = 0;
+                for(int j = 0; j < a_size; j++){
+                    if(func[i][j] != -1)
+                        counter++;
+                }
+                if(counter != a_size)
+                    throw new IOException("Automat is not determinated. Can`t leave from state "+ i +" with anyone char. j=");
+            }
+        }
     }
 
     private static String[] check_input_line(BufferedReader reader, int len, String fname, int line_num) throws IOException {
@@ -105,21 +122,39 @@ public class Automat {
         return data;
     }
 
-    private boolean state_exists(int st){
-        return c_start >= 0 && c_start < s_size;
+    private boolean good_state(int st){
+        return st >= 0 && st < s_size;
     }
 
-    private void print_to_file(String fname) throws IOException{
-        //FireWriter myWriter
+    private boolean good_char(int st){
+        return st >= 0 && st <= a_size;
     }
 
+    public void print_to_file(String fname) throws IOException{
+        FileWriter out = new FileWriter(fname);
+        out.write(a_size + "\n");
+        out.write(s_size + "\n");
+        out.write(s_start + "\n");
+        out.write(f_size + " ");
+        for(int current : Final)
+            out.write(current + " ");
+        out.write("\n");
+        for(int i = 0; i < s_size; i++){
+            for(int j = 0; j < a_size; j++){
+                if(func[i][j] != -1)
+                    out.write(String.valueOf(i) + " " + (char)(j + 'a') + " " + String.valueOf(func[i][j]) + "\n");
+            }
+        }
+        out.close();
+    }
 
+    //tmp
 
     private String stream_fname;
     private int a_size = 0;
     private int s_size = 0;
     private HashSet<String> A = new HashSet<>();
-    private int c_start = -1;
+    private int s_start = -1;
     int f_size = 0;
     HashSet<Integer> Final = new HashSet<>();
     int[][] func;
