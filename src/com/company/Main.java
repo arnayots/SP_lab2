@@ -10,6 +10,8 @@ public class Main {
         try{
             Automat aut_A = new Automat(input_filename_A, input_filename_stream);
             aut_A.print_to_file(output_filename);
+            aut_A.minimise();
+            aut_A.print_to_file("out_debug.txt");
 
 
 

@@ -2,6 +2,7 @@ package com.company;
 import java.io.FileReader;
 import java.io.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 
@@ -110,6 +111,82 @@ public class Automat {
         }
     }
 
+    public void minimise(){
+        remove_unattainable_states();
+
+        HashMap<Integer, Integer> st_class = new HashMap<>();
+        int st_count = 2;
+        for(int i = 0; i < s_size; i++)
+            st_class.put(i, 0);
+        for(int i : Final)
+            st_class.replace(i, 1);
+        if(Final.isEmpty())
+            st_count = 1;
+
+        boolean do_next = true;
+        while(do_next){
+            HashSet<Integer> colission = new HashSet<>();
+            for(int i = 0; i < s_size; i++){
+                for(int j = 0; j < a_size; j++){
+                    if(func[i][j] != -1 && st_class.get(i) != st_class.get(func[i][j])){
+                        colission.add(i);
+                    }
+                }
+            }
+            for(int i : colission){
+                st_class.replace(i, st_count);
+                st_count++;
+            }
+            if(colission.isEmpty())
+                do_next = false
+        }
+
+
+    }
+
+    private void remove_unattainable_states(){
+        HashMap<Integer, Integer> states_cond = new HashMap<>();
+        for(int i = 0; i < s_size; i++)
+            states_cond.put(i, 0);
+        states_cond.replace(s_start, 1);
+        // 0 - non visited
+        // 1 - visited
+        visit_next_states(states_cond, s_start);
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + states_cond.get(i));
+
+        int unvis_count = 0;
+        HashSet<Integer> unvis_states = new HashSet<>();
+        for(int i = 0; i < s_size; i++){
+            if(states_cond.get(i) == 0){
+                unvis_states.add(i);
+                unvis_count++;
+            }
+        }
+        int[][] new_func = new int[s_size - unvis_count][a_size];
+        int i_new = 0;
+        for(int i_old = 0; i_old < s_size; i_old++){
+            if(!unvis_states.contains(i_old)){
+                new_func[i_new] = func[i_old];
+                throw new IOException("-------- PROBLEM --------")
+                i_new++;
+            }
+        }
+        func = new_func;
+        s_size = s_size - unvis_count;
+        Final.removeAll(unvis_states);
+        f_size = Final.size();
+    }
+
+    private void visit_next_states(HashMap<Integer, Integer> states_cond, int st){
+        for(int i = 0; i < a_size; i++){
+            if(states_cond.get(i) == 0){
+                states_cond.replace(i, 1);
+                visit_next_states(states_cond, i);
+            }
+        }
+    }
+
     private static String[] check_input_line(BufferedReader reader, int len, String fname, int line_num) throws IOException {
         String line = reader.readLine();
         if(line == null)
@@ -147,8 +224,6 @@ public class Automat {
         }
         out.close();
     }
-
-    //tmp
 
     private String stream_fname;
     private int a_size = 0;
