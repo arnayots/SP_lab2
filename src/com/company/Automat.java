@@ -4,6 +4,7 @@ import java.io.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 
 import static com.company.consts.delim;
@@ -138,7 +139,7 @@ public class Automat {
                 st_count++;
             }
             if(colission.isEmpty())
-                do_next = false
+                do_next = false;
         }
 
 
@@ -163,12 +164,23 @@ public class Automat {
                 unvis_count++;
             }
         }
-        int[][] new_func = new int[s_size - unvis_count][a_size];
+        TreeMap<Integer, Integer> new_num = new TreeMap<>();
+        HashMap<Integer, Integer> old_num = new HashMap<>();
         int i_new = 0;
         for(int i_old = 0; i_old < s_size; i_old++){
             if(!unvis_states.contains(i_old)){
-                new_func[i_new] = func[i_old];
-                throw new IOException("-------- PROBLEM --------")
+                new_num.put(i_new, i_old);
+                old_num.put(i_old, i_new);
+                i_new++;
+            } else
+                old_num.put(i_old, -1);
+        }
+        int[][] new_func = new int[s_size - unvis_count][a_size];
+        for(int i = 0; i < s_size - unvis_count; i++){
+            if(!unvis_states.contains(i)){
+                for(int j = 0; j < a_size; j++){
+                    new_func[i][j] = old_num.get(func[i][j]);
+                }
                 i_new++;
             }
         }
