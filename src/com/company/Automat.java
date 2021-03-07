@@ -124,6 +124,12 @@ public class Automat {
         if(Final.isEmpty())
             st_count = 1;
 
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + st_class.get(i));
+
+
+        System.out.println("---------");
+
         boolean do_next = true;
         while(do_next){
             HashSet<Integer> colission = new HashSet<>();
@@ -141,8 +147,8 @@ public class Automat {
             if(colission.isEmpty())
                 do_next = false;
         }
-
-
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + st_class.get(i));
     }
 
     private void remove_unattainable_states(){
@@ -153,8 +159,6 @@ public class Automat {
         // 0 - non visited
         // 1 - visited
         visit_next_states(states_cond, s_start);
-        for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + states_cond.get(i));
 
         int unvis_count = 0;
         HashSet<Integer> unvis_states = new HashSet<>();
@@ -164,6 +168,7 @@ public class Automat {
                 unvis_count++;
             }
         }
+
         TreeMap<Integer, Integer> new_num = new TreeMap<>();
         HashMap<Integer, Integer> old_num = new HashMap<>();
         int i_new = 0;
@@ -175,15 +180,20 @@ public class Automat {
             } else
                 old_num.put(i_old, -1);
         }
+
         int[][] new_func = new int[s_size - unvis_count][a_size];
         for(int i = 0; i < s_size - unvis_count; i++){
             if(!unvis_states.contains(i)){
                 for(int j = 0; j < a_size; j++){
-                    new_func[i][j] = old_num.get(func[i][j]);
+                    if(func[i][j] != -1)
+                        new_func[i][j] = old_num.get(func[i][j]);
+                    else
+                        new_func[i][j] = -1;
                 }
                 i_new++;
             }
         }
+
         func = new_func;
         s_size = s_size - unvis_count;
         Final.removeAll(unvis_states);
