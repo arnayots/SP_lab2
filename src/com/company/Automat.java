@@ -134,18 +134,28 @@ public class Automat {
         while(do_next){
             HashSet<Integer> colission = new HashSet<>();
             for(int i = 0; i < s_size; i++){
+                HashSet<Integer> goes_to = new HashSet<>();
                 for(int j = 0; j < a_size; j++){
-                    if(func[i][j] != -1 && st_class.get(i) != st_class.get(func[i][j])){
-                        colission.add(i);
-                    }
+                    if(func[i][j] != -1)
+                         goes_to.add(st_class.get(func[i][j]));
+                }
+                if(goes_to.size() > 1)
+                    colission.add(i);
+            }
+            do_next = false;
+            for(int i : colission){
+                int i_cl = st_class.get(i);
+                int i_cl_size = 0;
+                for(int j = 0; j < s_size; j++){
+                    if(st_class.get(j) == i_cl)
+                        i_cl_size++;
+                }
+                if(i_cl_size != 1){
+                    st_class.replace(i, st_count);
+                    st_count++;
+                    do_next = true;
                 }
             }
-            for(int i : colission){
-                st_class.replace(i, st_count);
-                st_count++;
-            }
-            if(colission.isEmpty())
-                do_next = false;
         }
         for(int i = 0; i < s_size; i++)
             System.out.println(i + " " + st_class.get(i));
