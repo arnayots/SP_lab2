@@ -12,6 +12,8 @@ public class Main {
             aut_A.print_to_file(output_filename);
             aut_A.minimise();
             aut_A.print_to_file("out_debug.txt");
+            aut_A.refactor();
+            aut_A.print_to_file("out_debug_2.txt");
 
 
 
@@ -23,6 +25,7 @@ public class Main {
         catch (IOException ex){
             System.out.println(ex.getMessage());
         }
+
 
     }
 }

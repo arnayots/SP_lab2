@@ -140,14 +140,13 @@ public class Automat {
                         st_in_cl.add(j);
                 }
                 st_count = check_and_update_next(st_in_cl, i, st_class, st_count, next);
-                System.out.println("st_count = " + st_count);
             }
 
             if(st_class == next)
                 do_next = false;
             st_class = next;
         }
-
+        //states separated to classes of equivalence
 
         for(int i = 0; i < s_size; i++)
             System.out.println(i + " " + st_class.get(i));
@@ -158,6 +157,13 @@ public class Automat {
             for(int j = 0; j < a_size; j++)
                 new_func[i][j] = -1;
         }
+        //new func dummy initialisation
+
+        System.out.println("---------111");
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + st_class.get(i));
+        System.out.println("---------");
+        System.out.println(st_count);
 
         for(int i = 0; i < st_count; i++) {
             for (int j = 0; j < a_size; j++) {
@@ -176,12 +182,18 @@ public class Automat {
                         new_final.add(i);
                 }
             }
-            for(int j = 0; j < st_count; j++){
+            for(int j = 0; j < a_size; j++){
+                System.out.println(st_in_cl.size() + " " + func[i][j]);
                 if(func[st_in_cl.first()][j] != -1)
                     new_func[i][j] = st_class.get(func[st_in_cl.first()][j]);
             }
-
         }
+        //new func is defiend
+
+        System.out.println("---------");
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + st_class.get(i));
+        System.out.println("---------");
 
         s_start = st_class.get(s_start);
         Final = new_final;
@@ -226,7 +238,7 @@ public class Automat {
         visit_next_states(states_cond, s_start);
 
         int unvis_count = 0;
-        HashSet<Integer> unvis_states = new HashSet<>();
+        TreeSet<Integer> unvis_states = new TreeSet<>();
         for(int i = 0; i < s_size; i++){
             if(states_cond.get(i) == 0){
                 unvis_states.add(i);
@@ -246,31 +258,44 @@ public class Automat {
                 old_num.put(i_old, -1);
         }
 
+        for(int i = 0; i < s_size; i++)
+            System.out.println("old: "+i+ " "+old_num.get(i));
+
+        HashSet<Integer> new_final = new HashSet<>();
         int[][] new_func = new int[s_size - unvis_count][a_size];
-        for(int i = 0; i < s_size - unvis_count; i++){
+        for(int i = 0; i < s_size; i++){
             if(!unvis_states.contains(i)){
                 for(int j = 0; j < a_size; j++){
-                    if(func[i][j] != -1)
-                        new_func[i][j] = old_num.get(func[i][j]);
+                    if(func[i][j] != -1) {
+                        System.out.println("! " +old_num.get(i) +" "+ j+" "+ func[i][j]);
+                        new_func[old_num.get(i)][j] = old_num.get(func[i][j]);
+                    }
                     else
-                        new_func[i][j] = -1;
+                        new_func[old_num.get(i)][j] = -1;
                 }
+                if(Final.contains(i))
+                    new_final.add(old_num.get(i));
                 i_new++;
             }
         }
 
         func = new_func;
         s_size = s_size - unvis_count;
-        Final.removeAll(unvis_states);
+        Final = new_final;
         f_size = Final.size();
     }
 
     private void visit_next_states(HashMap<Integer, Integer> states_cond, int st){
         for(int i = 0; i < a_size; i++){
+            if(func[st][i] != -1 && states_cond.get(func[st][i]) == 0){
+                states_cond.replace(func[st][i], 1);
+                visit_next_states(states_cond, func[st][i]);
+            }
+            /*
             if(states_cond.get(i) == 0){
                 states_cond.replace(i, 1);
                 visit_next_states(states_cond, i);
-            }
+            }*/
         }
     }
 
@@ -310,11 +335,63 @@ public class Automat {
                 if(!split.contains(elem))
                     next.replace(elem, cl_num);
             }
-            st_count++;
-            System.out.println("New st_count = " + st_count);
-            st_count = check_and_update_next(split,st_count - 1, st_class, st_count, next);
+            if(!split.isEmpty()){
+                if(split.size() == 1){
+                    next.replace(split.first(), st_count);
+                    st_count++;
+                } else {
+                    for(int el : split)
+                        next.replace(el, st_count);
+                    st_count++;
+                    st_count = check_and_update_next(split, st_count - 1, st_class, st_count, next);
+                }
+            }
         }
         return st_count;
+    }
+
+    public boolean is_equal(Automat other){
+        refactor();
+        other.refactor();
+
+        return true;
+    }
+
+    public void refactor(){
+        TreeMap<Integer, Integer> rename = new TreeMap<>();
+        rename.put(s_start, 0);
+        rename.put(-1, -1);
+        refact_recurce(s_start, rename);
+        TreeMap<Integer, Integer> reverse_rename = new TreeMap<>();
+        for(int i = 0; i < s_size; i++)
+            System.out.println(i + " " + rename.get(i));
+        for(int i = 0; i < s_size; i++)
+            reverse_rename.put(rename.get(i), i);
+        reverse_rename.put(-1, -1);
+        int[][] new_func = new int[s_size][a_size];
+        HashSet<Integer> new_final = new HashSet<>();
+        for(int i = 0; i < s_size; i++){
+            for(int j = 0; j < a_size; j++){
+                new_func[i][j] = reverse_rename.get(func[rename.get(i)][j]);
+            }
+            if(Final.contains(i))
+                new_final.add(reverse_rename.get(i));
+        }
+        func = new_func;
+        Final = new_final;
+        s_start = 0;
+    }
+
+    private void refact_recurce(int st, TreeMap<Integer, Integer> rename){
+        TreeSet<Integer> to_visit = new TreeSet<>();
+        for(int i = 0; i < a_size; i++){
+            if(func[st][i] != -1 && !rename.containsKey(func[st][i])){
+                rename.put(func[st][i], rename.lastKey() + 1);
+                to_visit.add(func[st][i]);
+            }
+        }
+        for(int el : to_visit)
+            refact_recurce(el, rename);
     }
 
     private boolean good_state(int st){
