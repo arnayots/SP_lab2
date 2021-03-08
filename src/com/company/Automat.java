@@ -1,10 +1,10 @@
 package com.company;
+import com.sun.source.tree.Tree;
+
 import java.io.FileReader;
 import java.io.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TreeMap;
+import java.util.*;
 
 
 import static com.company.consts.delim;
@@ -112,7 +112,7 @@ public class Automat {
         }
     }
 
-    public void minimise(){
+    public void minimise() throws IOException {
         remove_unattainable_states();
 
         HashMap<Integer, Integer> st_class = new HashMap<>();
@@ -131,34 +131,89 @@ public class Automat {
         System.out.println("---------");
 
         boolean do_next = true;
+        HashMap<Integer, Integer> next = new HashMap<>(st_class);
         while(do_next){
-            HashSet<Integer> colission = new HashSet<>();
-            for(int i = 0; i < s_size; i++){
-                HashSet<Integer> goes_to = new HashSet<>();
-                for(int j = 0; j < a_size; j++){
-                    if(func[i][j] != -1)
-                         goes_to.add(st_class.get(func[i][j]));
-                }
-                if(goes_to.size() > 1)
-                    colission.add(i);
-            }
-            do_next = false;
-            for(int i : colission){
-                int i_cl = st_class.get(i);
-                int i_cl_size = 0;
+            for(int i = 0; i < st_count; i++){
+                TreeSet<Integer> st_in_cl = new TreeSet<>();
                 for(int j = 0; j < s_size; j++){
-                    if(st_class.get(j) == i_cl)
-                        i_cl_size++;
+                    if(st_class.get(j) == i)
+                        st_in_cl.add(j);
                 }
-                if(i_cl_size != 1){
-                    st_class.replace(i, st_count);
-                    st_count++;
-                    do_next = true;
-                }
+                st_count = check_and_update_next(st_in_cl, i, st_class, st_count, next);
+                System.out.println("st_count = " + st_count);
             }
+
+            if(st_class == next)
+                do_next = false;
+            st_class = next;
         }
+
+
         for(int i = 0; i < s_size; i++)
             System.out.println(i + " " + st_class.get(i));
+
+
+        int[][] new_func = new int[st_count][a_size];
+        for(int i = 0; i < st_count; i++){
+            for(int j = 0; j < a_size; j++)
+                new_func[i][j] = -1;
+        }
+
+        for(int i = 0; i < st_count; i++) {
+            for (int j = 0; j < a_size; j++) {
+                System.out.print(new_func[i][j] + " ");
+            }
+            System.out.println(" ");
+        }
+
+        HashSet<Integer> new_final = new HashSet<>();
+        for(int i = 0; i < st_count; i++){
+            TreeSet<Integer> st_in_cl = new TreeSet<>();
+            for(int j = 0; j < s_size; j++){
+                if(st_class.get(j) == i){
+                    st_in_cl.add(j);
+                    if(Final.contains(j))
+                        new_final.add(i);
+                }
+            }
+            for(int j = 0; j < st_count; j++){
+                if(func[st_in_cl.first()][j] != -1)
+                    new_func[i][j] = st_class.get(func[st_in_cl.first()][j]);
+            }
+
+        }
+
+        s_start = st_class.get(s_start);
+        Final = new_final;
+        f_size = Final.size();
+        s_size = st_count;
+        func = new_func;
+
+
+/*
+        for(int i = 0; i < st_count; i++){
+            HashSet<Integer> states = new HashSet<>();
+            for(int j = 0; j < st_count; j++){
+                if(st_class.get(i) == st_class.get(j))
+                    states.add(j);
+            }
+            if(states.size() == 1){
+                for(int j = 0; j < a_size; j++){
+                    if(func[i][j] != -1)
+                        new_func[i][j] = st_class.get(func[i][j]);
+                }
+            } else {
+                HashSet<Integer> goes_to = new HashSet<>();
+                for(int el : states){
+                    if(!Final.contains(el)){
+                        goes_to.add
+                    }
+                }
+            }
+
+        }
+
+*/
     }
 
     private void remove_unattainable_states(){
@@ -219,6 +274,14 @@ public class Automat {
         }
     }
 
+    private boolean is_zero_eq(int st1, int st2, HashMap<Integer, Integer> st_class){
+        for(int i = 0; i < a_size; i++){
+            if(st_class.get(func[st1][i]) != st_class.get(func[st2][i]))
+                return false;
+        }
+        return true;
+    }
+
     private static String[] check_input_line(BufferedReader reader, int len, String fname, int line_num) throws IOException {
         String line = reader.readLine();
         if(line == null)
@@ -229,6 +292,29 @@ public class Automat {
         else if(data.length > len)
             throw new IOException("Too much arguments in line " + line_num + " of " + fname);
         return data;
+    }
+
+    private int check_and_update_next(TreeSet<Integer> st_in_cl, int cl_num, HashMap<Integer, Integer> st_class, int st_count, HashMap<Integer, Integer> next) throws IOException {
+        if(st_in_cl.isEmpty())
+            return st_count;
+        if(st_in_cl.size() == 1){
+            next.replace(st_in_cl.first(), cl_num);
+        } else {
+            int fir = st_in_cl.first();
+            TreeSet<Integer> split = new TreeSet<>();
+            for(int elem : st_in_cl){
+                if(!is_zero_eq(fir, elem, st_class))
+                    split.add(elem);
+            }
+            for(int elem : st_in_cl){
+                if(!split.contains(elem))
+                    next.replace(elem, cl_num);
+            }
+            st_count++;
+            System.out.println("New st_count = " + st_count);
+            st_count = check_and_update_next(split,st_count - 1, st_class, st_count, next);
+        }
+        return st_count;
     }
 
     private boolean good_state(int st){
