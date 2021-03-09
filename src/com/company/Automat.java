@@ -361,7 +361,7 @@ public class Automat {
         TreeMap<Integer, Integer> rename = new TreeMap<>();
         rename.put(s_start, 0);
         rename.put(-1, -1);
-        refact_recurce(s_start, rename);
+        refact_recurce(s_start, rename, 1);
         TreeMap<Integer, Integer> reverse_rename = new TreeMap<>();
         for(int i = 0; i < s_size; i++)
             System.out.println(i + " " + rename.get(i));
@@ -382,16 +382,17 @@ public class Automat {
         s_start = 0;
     }
 
-    private void refact_recurce(int st, TreeMap<Integer, Integer> rename){
+    private void refact_recurce(int st, TreeMap<Integer, Integer> rename, int counter){
         TreeSet<Integer> to_visit = new TreeSet<>();
         for(int i = 0; i < a_size; i++){
             if(func[st][i] != -1 && !rename.containsKey(func[st][i])){
-                rename.put(func[st][i], rename.lastKey() + 1);
+                rename.put(func[st][i], counter);
+                counter++;
                 to_visit.add(func[st][i]);
             }
         }
         for(int el : to_visit)
-            refact_recurce(el, rename);
+            refact_recurce(el, rename, counter);
     }
 
     private boolean good_state(int st){
