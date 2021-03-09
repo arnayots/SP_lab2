@@ -1,23 +1,19 @@
 package com.company;
-import com.sun.source.tree.Tree;
-
 import java.io.FileReader;
 import java.io.*;
-
 import java.util.*;
-
 
 import static com.company.consts.delim;
 
 public class Automat {
-    public Automat(String input_fname, String stream_filename) throws IOException {
+    public Automat(String input_fname) throws IOException {
         File input_file = new File(input_fname);
         FileReader fr = new FileReader(input_file);
         BufferedReader reader = new BufferedReader(fr);
         String[] data;
 
-        stream_fname = stream_filename;
-        stream_reader = new FileReader(new File(stream_filename));
+        //stream_fname = stream_filename;
+        //stream_reader = new FileReader(new File(stream_filename));
 
         //first line
         data = check_input_line(reader, 1, input_fname,1);
@@ -112,7 +108,7 @@ public class Automat {
         }
     }
 
-    public void minimise() throws IOException {
+    private void minimise() throws IOException {
         remove_unattainable_states();
 
         HashMap<Integer, Integer> st_class = new HashMap<>();
@@ -350,14 +346,33 @@ public class Automat {
         return st_count;
     }
 
-    public boolean is_equal(Automat other){
+    public boolean is_equal(Automat other) throws IOException {
+        minimise();
+        other.minimise();
         refactor();
         other.refactor();
+        return is_equal_local(other);
+    }
 
+    private boolean is_equal_local(Automat other){
+        if(!Final.equals(other.Final))
+            return false;
+        if(s_start != other.s_start)
+            return false;
+        if(a_size != other.a_size)
+            return false;
+        if(s_size != other.s_size)
+            return false;
+        for(int i = 0; i < s_size; i++){
+            for(int j = 0; j < a_size; j++){
+                if(func[i][j] != other.func[i][j])
+                    return false;
+            }
+        }
         return true;
     }
 
-    public void refactor(){
+    private void refactor(){
         TreeMap<Integer, Integer> rename = new TreeMap<>();
         rename.put(s_start, 0);
         rename.put(-1, -1);
@@ -421,7 +436,6 @@ public class Automat {
         out.close();
     }
 
-    private String stream_fname;
     private int a_size = 0;
     private int s_size = 0;
     private HashSet<String> A = new HashSet<>();
@@ -429,8 +443,6 @@ public class Automat {
     int f_size = 0;
     HashSet<Integer> Final = new HashSet<>();
     int[][] func;
-
-    FileReader stream_reader;
 
 }
 
