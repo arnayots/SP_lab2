@@ -9,19 +9,16 @@ public class Main {
             Automat aut_A = new Automat(input_filename_A);
             aut_A.print_to_file(output_filename_A);
 
+            aut_A.graphviz("graphviz_A.txt");
+            System.out.println("A: " + aut_A.graphlink());
+
             Automat aut_B = new Automat(input_filename_B);
             aut_B.print_to_file(output_filename_B);
+            System.out.println("B: "+aut_B.graphlink());
 
             boolean res = aut_A.is_equal(aut_B);
             System.out.println(res);
-
-            /*
-            aut_A.minimise();
-            aut_A.print_to_file("out_debug.txt");
-            aut_A.refactor();
-            aut_A.print_to_file("out_debug_2.txt");
-            */
-
+            System.out.println("A: " + aut_A.graphlink());
 
         }
         catch (NumberFormatException ex){

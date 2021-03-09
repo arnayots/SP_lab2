@@ -7,4 +7,5 @@ public class consts {
     public static String output_filename_A = "output_A.txt";
     public static String output_filename_B = "output_A.txt";
     public static String delim = "\\s";
+    public static int debug = 0;
 }

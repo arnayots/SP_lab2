@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import static com.company.consts.delim;
+import static com.company.consts.debug;
 
 public class Automat {
     public Automat(String input_fname) throws IOException {
@@ -111,6 +112,15 @@ public class Automat {
     private void minimise() throws IOException {
         remove_unattainable_states();
 
+        if(debug == 1){
+            System.out.println("------");
+            for(int i = 0; i<s_size; i++)
+                System.out.println(i);
+            System.out.println("------");
+            System.out.println("------s_start");
+            System.out.println(s_start);
+        }
+
         HashMap<Integer, Integer> st_class = new HashMap<>();
         int st_count = 2;
         for(int i = 0; i < s_size; i++)
@@ -119,12 +129,6 @@ public class Automat {
             st_class.replace(i, 1);
         if(Final.isEmpty())
             st_count = 1;
-
-        for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + st_class.get(i));
-
-
-        System.out.println("---------");
 
         boolean do_next = true;
         HashMap<Integer, Integer> next = new HashMap<>(st_class);
@@ -144,10 +148,6 @@ public class Automat {
         }
         //states separated to classes of equivalence
 
-        for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + st_class.get(i));
-
-
         int[][] new_func = new int[st_count][a_size];
         for(int i = 0; i < st_count; i++){
             for(int j = 0; j < a_size; j++)
@@ -155,18 +155,16 @@ public class Automat {
         }
         //new func dummy initialisation
 
-        System.out.println("---------111");
-        for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + st_class.get(i));
-        System.out.println("---------");
-        System.out.println(st_count);
-
-        for(int i = 0; i < st_count; i++) {
-            for (int j = 0; j < a_size; j++) {
-                System.out.print(new_func[i][j] + " ");
-            }
-            System.out.println(" ");
+        if(debug == 1) {
+            for (int i = 0; i < s_size; i++)
+                System.out.println(i + " " + st_class.get(i));
+            System.out.println("----");
+            System.out.println("s_size= " + s_size);
+            System.out.println("st_count= " + st_count);
+            System.out.println("------s_start");
+            System.out.println(s_start);
         }
+
 
         HashSet<Integer> new_final = new HashSet<>();
         for(int i = 0; i < st_count; i++){
@@ -179,49 +177,25 @@ public class Automat {
                 }
             }
             for(int j = 0; j < a_size; j++){
-                System.out.println(st_in_cl.size() + " " + func[i][j]);
                 if(func[st_in_cl.first()][j] != -1)
                     new_func[i][j] = st_class.get(func[st_in_cl.first()][j]);
             }
         }
         //new func is defiend
-
-        System.out.println("---------");
-        for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + st_class.get(i));
-        System.out.println("---------");
+        if(debug == 1){
+            System.out.println("------st_class");
+            for (int i = 0; i < s_size; i++)
+                System.out.println(i + " " + st_class.get(i));
+            System.out.println("------");
+            System.out.println("------s_start");
+            System.out.println(s_start);
+        }
 
         s_start = st_class.get(s_start);
         Final = new_final;
         f_size = Final.size();
         s_size = st_count;
         func = new_func;
-
-
-/*
-        for(int i = 0; i < st_count; i++){
-            HashSet<Integer> states = new HashSet<>();
-            for(int j = 0; j < st_count; j++){
-                if(st_class.get(i) == st_class.get(j))
-                    states.add(j);
-            }
-            if(states.size() == 1){
-                for(int j = 0; j < a_size; j++){
-                    if(func[i][j] != -1)
-                        new_func[i][j] = st_class.get(func[i][j]);
-                }
-            } else {
-                HashSet<Integer> goes_to = new HashSet<>();
-                for(int el : states){
-                    if(!Final.contains(el)){
-                        goes_to.add
-                    }
-                }
-            }
-
-        }
-
-*/
     }
 
     private void remove_unattainable_states(){
@@ -254,16 +228,12 @@ public class Automat {
                 old_num.put(i_old, -1);
         }
 
-        for(int i = 0; i < s_size; i++)
-            System.out.println("old: "+i+ " "+old_num.get(i));
-
         HashSet<Integer> new_final = new HashSet<>();
         int[][] new_func = new int[s_size - unvis_count][a_size];
         for(int i = 0; i < s_size; i++){
             if(!unvis_states.contains(i)){
                 for(int j = 0; j < a_size; j++){
                     if(func[i][j] != -1) {
-                        System.out.println("! " +old_num.get(i) +" "+ j+" "+ func[i][j]);
                         new_func[old_num.get(i)][j] = old_num.get(func[i][j]);
                     }
                     else
@@ -279,6 +249,7 @@ public class Automat {
         s_size = s_size - unvis_count;
         Final = new_final;
         f_size = Final.size();
+        s_start = old_num.get(s_start);
     }
 
     private void visit_next_states(HashMap<Integer, Integer> states_cond, int st){
@@ -379,8 +350,6 @@ public class Automat {
         refact_recurce(s_start, rename, 1);
         TreeMap<Integer, Integer> reverse_rename = new TreeMap<>();
         for(int i = 0; i < s_size; i++)
-            System.out.println(i + " " + rename.get(i));
-        for(int i = 0; i < s_size; i++)
             reverse_rename.put(rename.get(i), i);
         reverse_rename.put(-1, -1);
         int[][] new_func = new int[s_size][a_size];
@@ -434,6 +403,63 @@ public class Automat {
             }
         }
         out.close();
+    }
+
+    public void graphviz(String fname) throws IOException{
+        FileWriter out = new FileWriter(fname);
+        out.write("digraph G {\n");
+        for(int i = 0; i < s_size; i++){
+            for(int k = 0; k < s_size; k++){
+                String res = "";
+                for(int j = 0; j < a_size; j++){
+                    if(func[i][j] == k){
+                        res += (char)(j + 'a');
+                    }
+                }
+                if(!res.isEmpty())
+                    out.write("  "+i+" -> "+k+"[label =\""+res+"\"]\n");
+            }
+        }
+        out.write("  "+s_start+" [shape=\"doublecircle\"];\n");
+        for(int el : Final)
+            out.write("  "+el+" [shape=\"doublecircle\", color=\"brown\"];\n");
+
+        out.write("}\n");
+        out.close();
+    }
+
+    public String graphlink() throws IOException{
+        String str = "";
+        str+="digraph G {\n";
+        for(int i = 0; i < s_size; i++){
+            for(int k = 0; k < s_size; k++){
+                String res = "";
+                for(int j = 0; j < a_size; j++){
+                    if(func[i][j] == k){
+                        res += (char)(j + 'a');
+                    }
+                }
+                if(!res.isEmpty())
+                    str+="  "+i+" -> "+k+"[label =\""+res+"\"]\n";
+            }
+        }
+        str+="  "+s_start+" [shape=\"doublecircle\"];\n";
+        for(int el : Final)
+            str+="  "+el+" [shape=\"doublecircle\", color=\"brown\"];\n";
+
+        str+="}\n";
+
+        StringBuffer sb = new StringBuffer();
+        char ch[] = str.toCharArray();
+        for(int i = 0; i < ch.length; i++) {
+            String hexString = Integer.toHexString(ch[i]);
+            if(hexString.length() == 1)
+                sb.append("%0"+hexString);
+            else
+                sb.append("%"+hexString);
+        }
+        String result = "https://dreampuf.github.io/GraphvizOnline/#"+ sb.toString();
+        return result;
     }
 
     private int a_size = 0;

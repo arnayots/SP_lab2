@@ -1,0 +1,8 @@
+digraph G {
+  0 -> 1[label ="abc"]
+  1 -> 2[label ="abc"]
+  3 -> 4[label ="abc"]
+  4 -> 3[label ="abc"]
+  0 [shape="doublecircle"];
+  2 [shape="doublecircle", color="brown"];
+}
